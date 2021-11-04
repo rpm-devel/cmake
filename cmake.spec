@@ -516,6 +516,10 @@ popd
 
 
 %changelog
+* Thu Nov 04 2021 BogusDateBot
+- Eliminated rpmbuild "bogus date" warnings due to inconsistent weekday,
+  by assuming the date is correct and changing the weekday.
+
 * Mon Sep 20 2021 Björn Esser <besser82@fedoraproject.org> - 3.21.3-1
 - cmake-3.21.3
   Fixes rhbz#2006054
