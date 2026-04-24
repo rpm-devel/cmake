@@ -1,10 +1,6 @@
 # Do we add appdata-files?
-# consider conditional on whether %%_metainfodir is defined or not instead -- rex
-%if 0%{?fedora} || 0%{?rhel} > 7
+# EL10+: always enable appdata
 %bcond_without appdata
-%else
-%bcond_with appdata
-%endif
 
 # Set to bcond_without or use --with bootstrap if bootstrapping a new release
 # or architecture
@@ -23,11 +19,8 @@
 %bcond_without ncurses
 
 # Setting the Python-version used by default
-%if 0%{?rhel} && 0%{?rhel} < 8
-%bcond_with python3
-%else
+# EL10+: python3 is always available
 %bcond_without python3
-%endif
 
 # Enable RPM dependency generators for cmake files written in Python
 %bcond_without rpm
@@ -58,7 +51,7 @@
 %{!?_vpath_builddir:%global _vpath_builddir %{_target_platform}}
 
 %global major_version 3
-%global minor_version 21
+%global minor_version 31
 # Set to RC version if building RC, else %%{nil}
 #global rcsuf rc1
 %{?rcsuf:%global relsuf .%{rcsuf}}
@@ -72,7 +65,7 @@
 %global orig_name cmake
 
 Name:           %{orig_name}%{?name_suffix}
-Version:        %{major_version}.%{minor_version}.3
+Version:        %{major_version}.%{minor_version}.6
 Release:        %{baserelease}%{?relsuf}%{?dist}
 Summary:        Cross-platform make system
 
@@ -99,10 +92,6 @@ Source5:        %{name}.req
 # http://public.kitware.com/Bug/view.php?id=12965
 # https://bugzilla.redhat.com/show_bug.cgi?id=822796
 Patch100:       %{name}-findruby.patch
-# replace release flag -O3 with -O2 for fedora
-%if 0%{?fedora} && 0%{?fedora} < 34
-Patch101:       %{name}-fedora-flag_release.patch
-%endif
 # Add dl to CMAKE_DL_LIBS on MINGW
 # https://gitlab.kitware.com/cmake/cmake/issues/17600
 Patch102:       %{name}-mingw-dl.patch
@@ -141,11 +130,7 @@ Provides: bundled(jsoncpp)
 %else
 BuildRequires:  jsoncpp-devel
 %endif
-%if 0%{?fedora} || 0%{?rhel} >= 7
 BuildRequires:  libarchive-devel
-%else
-BuildRequires:  libarchive3-devel
-%endif
 BuildRequires:  libuv-devel
 %if %{with bundled_rhash}
 Provides:  bundled(rhash)
@@ -161,19 +146,11 @@ BuildRequires:  emacs
 %endif
 BuildRequires:  openssl-devel
 %if %{with rpm}
-%if %{with python3}
 %{!?python3_pkgversion: %global python3_pkgversion 3}
 BuildRequires:  python%{python3_pkgversion}-devel
-%else
-BuildRequires:  python2-devel
-%endif
 %endif
 %if %{with gui}
-%if 0%{?fedora} || 0%{?rhel} > 7
 BuildRequires: pkgconfig(Qt5Widgets)
-%else
-BuildRequires: pkgconfig(QtGui)
-%endif
 BuildRequires: desktop-file-utils
 %endif
 
@@ -195,6 +172,8 @@ Requires:       make
 
 # Provide the major version name
 Provides: %{orig_name}%{major_version} = %{version}-%{release}
+Provides: cmake = %{version}-%{release}
+Obsoletes: cmake < %{version}-%{release}
 
 # Source/kwsys/MD5.c
 # see https://fedoraproject.org/wiki/Packaging:No_Bundled_Libraries
@@ -218,13 +197,11 @@ Requires:       %{name} = %{version}-%{release}
 Requires:       %{name}-filesystem = %{version}-%{release}
 Requires:       %{name}-rpm-macros = %{version}-%{release}
 %if %{with emacs}
-%if 0%{?fedora} || 0%{?rhel} >= 7
 Requires:       emacs-filesystem%{?_emacs_version: >= %{_emacs_version}}
 %endif
-%endif
 Requires:       vim-filesystem
+Obsoletes:      cmake-data < %{version}-%{release}
 
-BuildArch:      noarch
 
 %description    data
 This package contains common data-files for %{name}.
@@ -232,7 +209,7 @@ This package contains common data-files for %{name}.
 
 %package        doc
 Summary:        Documentation for %{name}
-BuildArch:      noarch
+Obsoletes:      cmake-doc < %{version}-%{release}
 
 %description    doc
 This package contains documentation for %{name}.
@@ -240,6 +217,7 @@ This package contains documentation for %{name}.
 
 %package        filesystem
 Summary:        Directories used by CMake modules
+Obsoletes:      cmake-filesystem < %{version}-%{release}
 
 %description    filesystem
 This package owns all directories used by CMake modules.
@@ -252,6 +230,7 @@ Summary:        Qt GUI for %{name}
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 Requires:       hicolor-icon-theme
 Requires:       shared-mime-info%{?_isa}
+Obsoletes:      cmake-gui < %{version}-%{release}
 
 %description    gui
 The %{name}-gui package contains the Qt based GUI for %{name}.
@@ -263,8 +242,8 @@ Summary:        Common RPM macros for %{name}
 Requires:       rpm
 # when subpkg introduced
 Conflicts:      cmake-data < 3.10.1-2
+Obsoletes:      cmake-rpm-macros < %{version}-%{release}
 
-BuildArch:      noarch
 
 %description    rpm-macros
 This package contains common RPM macros for %{name}.
@@ -274,13 +253,8 @@ This package contains common RPM macros for %{name}.
 %autosetup -n %{orig_name}-%{version}%{?versuf} -p 1
 
 %if %{with rpm}
-%if %{with python3}
 echo '#!%{__python3}' > %{name}.prov
 echo '#!%{__python3}' > %{name}.req
-%else
-echo '#!%{__python2}' > %{name}.prov
-echo '#!%{__python2}' > %{name}.req
-%endif
 tail -n +2 %{SOURCE4} >> %{name}.prov
 tail -n +2 %{SOURCE5} >> %{name}.req
 %endif
@@ -469,13 +443,8 @@ popd
 %{_datadir}/aclocal/%{name}.m4
 %{bash_completionsdir}/c*
 %if %{with emacs}
-%if 0%{?fedora} || 0%{?rhel} >= 7
 %{_emacs_sitelispdir}/%{name}
 %{_emacs_sitestartdir}/%{name}-init.el
-%else
-%{_emacs_sitelispdir}
-%{_emacs_sitestartdir}
-%endif
 %endif
 %{vimfiles_root}/indent/%{name}.vim
 %{vimfiles_root}/syntax/%{name}.vim
@@ -516,6 +485,10 @@ popd
 
 
 %changelog
+* Fri Apr 24 2026 CasjaysDev <rpm-devel@casjaysdev.pro> - 3.31.6-1
+- Update to 3.31.6
+- Modernize spec for EL10
+
 * Thu Nov 04 2021 BogusDateBot
 - Eliminated rpmbuild "bogus date" warnings due to inconsistent weekday,
   by assuming the date is correct and changing the weekday.
