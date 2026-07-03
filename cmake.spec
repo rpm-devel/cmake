@@ -50,8 +50,9 @@
 # Setup _vpath_builddir if not defined already
 %{!?_vpath_builddir:%global _vpath_builddir %{_target_platform}}
 
-%global major_version 3
-%global minor_version 31
+%global major_version 4
+%global minor_version 3
+%global patch_version 3
 # Set to RC version if building RC, else %%{nil}
 #global rcsuf rc1
 %{?rcsuf:%global relsuf .%{rcsuf}}
@@ -65,7 +66,7 @@
 %global orig_name cmake
 
 Name:           %{orig_name}%{?name_suffix}
-Version:        %{major_version}.%{minor_version}.6
+Version:        %{major_version}.%{minor_version}.%{patch_version}
 Release:        %{baserelease}%{?relsuf}%{?dist}
 Summary:        Cross-platform make system
 
@@ -74,9 +75,10 @@ Summary:        Cross-platform make system
 # Source/kwsys/MD5.c is zlib
 # some GPL-licensed bison-generated files, which all include an
 # exception granting redistribution under terms of your choice
-License:        BSD and MIT and zlib
-URL:            http://www.cmake.org
-Source0:        http://www.cmake.org/files/v%{major_version}.%{minor_version}/%{orig_name}-%{version}%{?versuf}.tar.gz
+License:        BSD-3-Clause AND MIT AND Zlib
+URL:            https://cmake.org
+ExclusiveArch:  x86_64 aarch64
+Source0:        https://cmake.org/files/v%{major_version}.%{minor_version}/%{orig_name}-%{version}%{?versuf}.tar.gz
 Source1:        %{name}-init.el
 Source2:        macros.%{name}
 # See https://bugzilla.redhat.com/show_bug.cgi?id=1202899
@@ -485,6 +487,11 @@ popd
 
 
 %changelog
+* Thu Jul 03 2026 CasjaysDev <rpm-devel@casjaysdev.pro> - 4.3.3-1
+- Version: 3.31.6 → 4.3.3 (latest); add %global patch_version
+- Source0/URL: http→https, cmake.org (verified 200)
+- SPDX: BSD/MIT/zlib → BSD-3-Clause AND MIT AND Zlib; ExclusiveArch: x86_64 aarch64
+
 * Fri Apr 24 2026 CasjaysDev <rpm-devel@casjaysdev.pro> - 3.31.6-1
 - Update to 3.31.6
 - Modernize spec for EL10
