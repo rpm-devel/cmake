@@ -65,6 +65,13 @@
 #global name_suffix %%{major_version}
 %global orig_name cmake
 
+# openssl-devel package name differs on SUSE
+%if 0%{?suse_version}
+%global openssl_devel_pkg libopenssl-devel
+%else
+%global openssl_devel_pkg openssl-devel
+%endif
+
 Name:           %{orig_name}%{?name_suffix}
 Version:        %{major_version}.%{minor_version}.%{patch_version}
 Release:        %{baserelease}%{?relsuf}%{?dist}
@@ -146,7 +153,7 @@ BuildRequires:  vim-filesystem
 %if %{with emacs}
 BuildRequires:  emacs
 %endif
-BuildRequires:  openssl-devel
+BuildRequires:  %{openssl_devel_pkg}
 %if %{with rpm}
 %{!?python3_pkgversion: %global python3_pkgversion 3}
 BuildRequires:  python%{python3_pkgversion}-devel
@@ -487,6 +494,10 @@ popd
 
 
 %changelog
+* Sat Jul 05 2026 CasjaysDev <rpm-devel@casjaysdev.pro> - 4.3.3-1
+- Multi-distro pass: guard openssl-devel vs libopenssl-devel for SUSE
+  (%%global openssl_devel_pkg under %%if 0%%{?suse_version})
+
 * Thu Jul 03 2026 CasjaysDev <rpm-devel@casjaysdev.pro> - 4.3.3-1
 - Version: 3.31.6 → 4.3.3 (latest); add %global patch_version
 - Source0/URL: http→https, cmake.org (verified 200)
