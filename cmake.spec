@@ -202,7 +202,7 @@ generation, code generation, and template instantiation.
 
 %package        data
 Summary:        Common data-files for %{name}
-Requires:       %{name} = %{version}-%{release}
+Requires:       %{name} = %{?epoch:%{epoch}:}%{version}-%{release}
 Requires:       %{name}-filesystem = %{version}-%{release}
 Requires:       %{name}-rpm-macros = %{version}-%{release}
 %if %{with emacs}
@@ -499,7 +499,7 @@ popd
   (%%global openssl_devel_pkg under %%if 0%%{?suse_version})
 
 * Thu Jul 03 2026 CasjaysDev <rpm-devel@casjaysdev.pro> - 4.3.3-1
-- Version: 3.31.6 → 4.3.3 (latest); add %global patch_version
+- Version: 3.31.6 → 4.3.3 (latest); add %%global patch_version
 - Source0/URL: http→https, cmake.org (verified 200)
 - SPDX: BSD/MIT/zlib → BSD-3-Clause AND MIT AND Zlib; ExclusiveArch: x86_64 aarch64
 
